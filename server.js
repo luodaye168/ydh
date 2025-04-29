@@ -1,84 +1,81 @@
 const express = require('express');
-const axios = require('axios');
 const path = require('path');
-const app = express();
-const port = 3000;
-
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
-const axios = wrapper(require('axios'));
+const axios = wrapper(require('axios')); // ✅ 正确初始化
+
+const app = express();
+const port = 3000;
 const jar = new CookieJar();
+let isLoggedIn = false; // 登录状态标记
 
 // 静态文件中间件
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 登录并获取 Cookie
-async function getLoginCookie() {
+// 登录并管理会话
+async function ensureLogin() {
+    if (isLoggedIn) return;
+
     try {
-      const loginUrl = 'https://sso.dinghuo123.com/login';
-      const loginData = new URLSearchParams({
-        username: '18676246146',
-        password: '246146'
-      });
-  
-      const response = await axios.post(loginUrl, loginData, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        jar,
-        maxRedirects: 5,
-        validateStatus: (status) => status >= 200 && status < 400
-      });
-  
-      return jar;
+        const loginUrl = 'https://sso.dinghuo123.com/login';
+        const response = await axios.post(loginUrl, new URLSearchParams({
+            username: '18676246146',
+            password: '246146'
+        }), {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            jar,
+            maxRedirects: 5,
+            validateStatus: (status) => status >= 200 && status < 400
+        });
+
+        isLoggedIn = true; // 标记已登录
+        console.log('登录成功，Cookie:', jar.getCookieStringSync(loginUrl));
     } catch (error) {
-      console.error('登录失败:', error);
-      throw error;
+        console.error('登录失败:', error);
+        throw error;
     }
-  }
+}
+
+// 统一代理处理器
+async function handleProxyRequest(url, params, res, type) {
+    try {
+        await ensureLogin(); // 确保已登录
+        const response = await axios.get(url, {
+            params,
+            jar, // ✅ 自动携带 Cookie
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (...)' // 模拟浏览器
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        handleProxyError(error, res, type);
+    }
+}
 
 // 库存代理端点
 app.get('/proxy/stock', async (req, res) => {
-    try {
-      await getLoginCookie();
-      const { warehouseId } = req.query;
-      const targetUrl = `https://corp.dinghuo123.com/v2/inventory/list?warehouseId=${warehouseId}`;
-      const response = await axios.get(targetUrl, { jar });
-      res.json(response.data);
-    } catch (error) {
-      handleProxyError(error, res, '库存');
-    }
-  });
+    const { warehouseId } = req.query;
+    const targetUrl = 'https://corp.dinghuo123.com/v2/inventory/list';
+    await handleProxyRequest(targetUrl, { warehouseId }, res, '库存');
+});
 
 // 订单统计代理端点
 app.get('/proxy/orders', async (req, res) => {
-    try {
-        const { startDate, endDate } = req.query;
-        const params = {
-            periodType: 'CUSTOM',
-            beginDate: startDate,
-            endDate: endDate,
-            orderBy: 'quantity',
-            departmentId: '7370569',
-            groupBy: 'PRODUCT',
-            pageSize: 10,
-            currentPage: 1,
-            t: Date.now()
-        };
-
-        const targetUrl = `https://corp.dinghuo123.com/v2/statistics-reports/region/products/pie-chart?${new URLSearchParams(params)}`;
-
-        // 获取动态 Cookie
-        const cookie = await getLoginCookie();
-
-        const response = await axios.get(targetUrl, {
-            headers: {
-                'Cookie': cookie
-            }
-        });
-
-        res.json(response.data);
-    } catch (error) {
-        handleProxyError(error, res, '订单统计');
-    }
+    const { startDate, endDate } = req.query;
+    const params = {
+        periodType: 'CUSTOM',
+        beginDate: startDate,
+        endDate: endDate,
+        orderBy: 'quantity',
+        departmentId: '7370569',
+        groupBy: 'PRODUCT',
+        pageSize: 10,
+        currentPage: 1,
+        t: Date.now()
+    };
+    const targetUrl = 'https://corp.dinghuo123.com/v2/statistics-reports/region/products/pie-chart';
+    await handleProxyRequest(targetUrl, params, res, '订单统计');
 });
 
 // 统一错误处理
@@ -91,6 +88,4 @@ function handleProxyError(error, res, type) {
     });
 }
 
-app.listen(port, () => {
-    console.log(`服务已启动：http://localhost:${port}`);
-});
+app.listen(port, () => console.log(`服务已启动：http://localhost:${port}`));
