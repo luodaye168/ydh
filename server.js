@@ -46,7 +46,7 @@ app.get('/proxy/stock', async (req, res) => {
 
         // 获取动态 Cookie
         const cookie = await getLoginCookie();
-
+        console.log('获取的 Cookie:', cookie);
         const response = await axios.get(targetUrl, {
             headers: {
                 'Cookie': cookie
