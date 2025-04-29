@@ -1,0 +1,430 @@
+<!-- <!DOCTYPE html>
+<html>
+<body>
+  <select id="warehouse" onchange="fetchData()">
+    <option value="4032050">湛江仓库</option>
+    <option value="4030410">贵港仓库</option>
+    <option value="4033070" selected>玉林仓库</option>
+  </select>
+  
+  <pre id="result" style="margin-top:20px;padding:10px;border:1px solid #ccc;"></pre>
+
+  <script>
+    async function fetchData() {
+      try {
+        const warehouseId = document.getElementById('warehouse').value;
+        const response = await fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy?warehouseId=${warehouseId}`);
+        const data = await response.json();
+        document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('result').textContent = '请求失败，请检查控制台';
+      }
+    }
+    
+    // 页面加载时自动获取初始数据
+    fetchData();
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+  <title>易订货外挂_库存预警</title>
+  <style>
+    .container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      flex: 1;
+    }
+
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      max-height: 500px;
+      overflow: auto;
+    }
+  </style>
+  <style>
+    .warning-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    .warning-table th,
+    .warning-table td {
+      border: 1px solid #ddd;
+      padding: 5px;
+      text-align: left;
+      font-size: 16px;
+    }
+
+    .warning-table th {
+      background-color: #ddd;
+      position: sticky;
+      /* 使表头浮动 */
+      top: 0;
+      /* 表头固定在表格顶部 */
+      z-index: 1;
+      /* 确保表头在内容上方 */
+      box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+      /* 添加阴影以区分表头和内容 */
+    }
+
+    .warning-table tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .warning-row {
+      background-color: #ffebee;
+      color: #b71c1c;
+    }
+
+    .ratio-column {
+      font-weight: bold;
+    }
+
+    /* .filter-group {
+      margin: 10px 0;
+    } */
+
+    /* .filter-group select {
+      margin-right: 15px;
+      padding: 5px;
+    } */
+  </style>
+  <style>
+    /* 紧凑型顶部控制栏 */
+    .control-bar {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      /* gap: 8px; */
+    }
+
+    .filter-group label {
+      font-size: 18px;
+      color: #606266;
+      white-space: nowrap;
+    }
+
+    select.compact {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .date-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="date"].compact {
+      padding: 6px 8px;
+      font-size: 13px;
+      width: 150px;
+    }
+
+    button.compact {
+      padding: 7px 15px;
+      font-size: 13px;
+      border-radius: 4px;
+      background: #409eff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button.compact:hover {
+      background: #3375b9;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      .control-bar {
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .filter-group {
+        flex: 1 1 100%;
+      }
+
+      select.compact {
+        flex: 1;
+      }
+    }
+
+    #progressBarContainer {
+      display: none;
+      width: 100%;
+      background: #f5f5f5;
+      height: 5px;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    #progressBar {
+      width: 0%;
+      height: 100%;
+      background: #409eff;
+      transition: width 0.3s;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="control-bar">
+    <!-- 仓库选择 -->
+    <div class="filter-group">
+      <label>仓库：</label>
+      <select id="warehouse" class="compact"  onchange="loadData()">
+        <option value="4033070" selected>玉林仓</option>
+        <option value="4032050">湛江仓</option>
+        <option value="4030410">贵港仓</option>
+      </select>
+    </div>
+
+    <!-- 厂家过滤 -->
+    <div class="filter-group">
+      <label>厂家：</label>
+                                                  <!-- onchange="loadData()" -->
+      <select id="manufacturer" class="compact"  onchange="loadData()">
+        <option value="">全部</option>
+        <!-- 动态选项 -->
+      </select>
+    </div>
+
+    <!-- 时间范围 -->
+    <div class="filter-group">
+      <label>筛选时间：</label>
+      <div class="date-group">
+        <input type="date" id="startDate" class="compact"  onchange="loadData()">
+        <span style="color: #909399;">至</span>
+        <input type="date" id="endDate" class="compact"  onchange="loadData()"> 
+      </div>
+    </div>
+
+    <!-- <button class="compact" onclick="loadData()">查询</button> -->
+  </div>
+
+  <div id="progressBarContainer"
+    style="display: none; width: 100%; background: #f5f5f5; height: 10px; position: relative; margin-top: 10px;">
+    <div id="progressBar" style="width: 0%; height: 100%; background: #409eff; transition: width 0.3s;"></div>
+  </div>
+
+  <table class="warning-table" id="inventoryTable">
+    <thead>
+      <tr>
+        <th>序号</th>
+        <th>商品编码</th>
+        <th>商品名称</th>
+        <th>所属仓库</th>
+        <th>可用库存量</th>
+        <th>订货数量</th>
+        <th>x筛选天数=可用天数</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+  </table>
+  <script>
+    async function loadData() {
+      try {
+        // 显示进度条
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        progressBarContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+
+        // 模拟进度条加载
+        progressBar.style.width = '30%';
+
+        const params = {
+          warehouseId: document.getElementById('warehouse').value,
+          startDate: document.getElementById('startDate').value,
+          endDate: document.getElementById('endDate').value
+        };
+
+        const [stockRes, orderRes] = await Promise.all([
+          fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${params.warehouseId}`),
+          fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/orders?${new URLSearchParams(params)}`)
+        ]);
+        progressBar.style.width = '60%';
+
+        const stockData = await stockRes.json();
+        const orderData = await orderRes.json();
+        console.log('stockData:', stockData);
+        console.log('orderData:', orderData);
+        progressBar.style.width = '90%';
+
+        // 检查数据结构是否正确
+        const stockItems = stockData?.data?.items || [];
+        const orderItems = orderData?.data?.items || [];
+
+        if (!Array.isArray(stockItems) || !Array.isArray(orderItems)) {
+          throw new Error('数据格式不正确');
+        }
+
+        // 合并数据并生成表格
+        generateWarningTable(stockItems, orderItems);
+
+        // 完成进度条
+        progressBar.style.width = '100%';
+
+        // 隐藏进度条
+        setTimeout(() => {
+          progressBarContainer.style.display = 'none';
+        }, 500);
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert(`数据加载失败，请查看控制台${error}`);
+      }
+    }
+
+    async function refreshManufacturerOptions() {
+      try {
+        const warehouseId = document.getElementById('warehouse').value;
+
+        const stockRes = await fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${warehouseId}`);
+        const stockData = await stockRes.json();
+
+        // 提取厂家信息并更新下拉框，仅提取括号内的第一个字
+        const manufacturers = new Set();
+        stockData.data.items.forEach(item => {
+          const match = item.productName.match(/[（(]([^）)])/); // 匹配括号内的第一个字
+          if (match && match[1]) {
+            manufacturers.add(match[1]);
+          }
+        });
+
+        const manufacturerSelect = document.getElementById('manufacturer');
+        manufacturerSelect.innerHTML = '<option value="">全部</option>';
+        manufacturers.forEach(manufacturer => {
+          const option = document.createElement('option');
+          option.value = manufacturer;
+          option.textContent = manufacturer;
+          manufacturerSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error refreshing manufacturer options:', error);
+      }
+    }
+
+    function generateWarningTable(stockItems, orderItems) {
+      const orderMap = new Map(orderItems.map(item => [item.id, item.value]));
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      // 获取选中的厂家
+      const selectedManufacturer = document.getElementById('manufacturer').value;
+
+      // 计算每一行的 ratio 并存储到数组中
+      const rows = stockItems
+        .filter(item => {
+          if (!selectedManufacturer) return true; // 如果未选择厂家，显示全部
+          const match = item.productName.match(/[（(]([^）)])/); // 匹配括号内的第一个字
+          const manufacturer = match ? match[1] : '';
+          return manufacturer === selectedManufacturer;
+        })
+        .map((item, index) => {
+          const orderQty = orderMap.get(item.code) || 0;
+          const ratio = orderQty === 0
+            ? '未下单' // 处理除零情况
+            : (item.usableCount / orderQty).toFixed(2);
+
+          return {
+            code: item.code,
+            productName: item.productName,
+            warehouseName: item.warehouseName,
+            usableCount: item.usableCount,
+            orderQty: orderQty,
+            ratio: ratio
+          };
+        });
+
+      // 按 ratio 排序，未下单的排在最后
+      rows.sort((a, b) => {
+        if (a.ratio === '未下单') return 1;
+        if (b.ratio === '未下单') return -1;
+        return parseFloat(a.ratio) - parseFloat(b.ratio);
+      });
+
+      // 生成表格行，序号从 1 开始
+      rows.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        if (row.ratio !== '未下单' && parseFloat(row.ratio) < 1) {
+          tr.classList.add('warning-row');
+        }
+
+        tr.innerHTML = `
+        <td>${index + 1}</td> <!-- 序号从 1 开始 -->
+        <td>${row.code}</td>
+        <td>${row.productName}</td>
+        <td>${row.warehouseName}</td>
+        <td>${row.usableCount}</td>
+        <td>${row.orderQty}</td>
+        <td class="ratio-column">${row.ratio}</td>
+      `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 绑定仓库选择变化事件，刷新厂家过滤下拉框
+    // document.getElementById('warehouse').addEventListener('change', () => {
+    //   refreshManufacturerOptions();
+    //   loadData();
+    // });
+
+    // // 绑定厂家过滤变化事件
+    // document.getElementById('manufacturer').addEventListener('change', loadData);
+
+    // 初始化加载数据
+    refreshManufacturerOptions();
+    loadData();
+
+  </script>
+  <script>
+    // 设置默认值为当天日期
+    const today = new Date();
+
+    // 设置开始日期为前 5 天
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - 5);
+
+    document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+    document.getElementById('endDate').value = today.toISOString().split('T')[0];
+
+    // 初始化加载数据
+    loadData();
+  </script>
+</body>
+
+</html>
