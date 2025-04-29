@@ -13,7 +13,7 @@
     async function fetchData() {
       try {
         const warehouseId = document.getElementById('warehouse').value;
-        const response = await fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy?warehouseId=${warehouseId}`);
+        const response = await fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy?warehouseId=${warehouseId}`);
         const data = await response.json();
         document.getElementById('result').textContent = JSON.stringify(data, null, 2);
       } catch (error) {
@@ -272,8 +272,8 @@
         };
 
         const [stockRes, orderRes] = await Promise.all([
-          fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${params.warehouseId}`),
-          fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/orders?${new URLSearchParams(params)}`)
+          fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${params.warehouseId}`),
+          fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/orders?${new URLSearchParams(params)}`)
         ]);
         progressBar.style.width = '60%';
 
@@ -312,7 +312,7 @@
       try {
         const warehouseId = document.getElementById('warehouse').value;
 
-        const stockRes = await fetch(`https://dinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${warehouseId}`);
+        const stockRes = await fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${warehouseId}`);
         const stockData = await stockRes.json();
 
         // 提取厂家信息并更新下拉框，仅提取括号内的第一个字
