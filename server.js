@@ -57,9 +57,19 @@ async function handleProxyRequest(url, params, res, type) {
 app.get('/proxy/stock', async (req, res) => {
     const { warehouseId } = req.query;
     const targetUrl = 'https://corp.dinghuo123.com/v2/inventory/list';
-    await handleProxyRequest(targetUrl, { warehouseId }, res, '库存');
-});
+    const params = {
+        currentPage: 1,
+        pageSize: 196,
+        totalCount: 196,
+        warehouseId: `[\"${warehouseId}\"]`, // 确保 warehouseId 格式正确
+        t: Date.now() // 动态时间戳
+    };
 
+    console.log('库存接口请求参数:', params);
+    console.log('库存接口目标 URL:', targetUrl);
+
+    await handleProxyRequest(targetUrl, params, res, '库存');
+});
 // 订单统计代理端点
 app.get('/proxy/orders', async (req, res) => {
     const { startDate, endDate } = req.query;
