@@ -94,6 +94,7 @@ app.get('/proxy/orders', async (req, res) => {
         t: Date.now()
     };
     const targetUrl = 'https://corp.dinghuo123.com/v2/statistics-reports/region/products/pie-chart';
+    console.log(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
     await handleProxyRequest(targetUrl, params, res, '订单统计');
 });
 
