@@ -3,6 +3,7 @@
     "axios": "^1.9.0",
     "axios-cookiejar-support": "^2.0.4",
     "express": "^5.1.0",
-    "tough-cookie": "^5.1.2"
+    "tough-cookie": "^5.1.2",
+    "xlsx": "^0.18.5"
   }
 }

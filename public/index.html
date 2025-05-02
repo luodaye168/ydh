@@ -194,6 +194,7 @@
       transition: width 0.3s;
     }
   </style>
+  <script src="./xlsx.full.min.js"></script>
 
 </head>
 
@@ -413,30 +414,28 @@
     // 初始化加载数据
     refreshManufacturerOptions();
     loadData();
-
     function exportTable() {
       const table = document.getElementById('inventoryTable');
       const rows = Array.from(table.querySelectorAll('tr'));
-      const csvContent = rows.map(row => {
+      const data = rows.map(row => {
         const cells = Array.from(row.querySelectorAll('th, td'));
-        return cells.map(cell => `"${cell.textContent.trim()}"`).join(','); // 使用逗号分隔
-      }).join('\n');
+        return cells.map(cell => cell.textContent.trim());
+      });
 
+      // 创建工作簿和工作表
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      XLSX.utils.book_append_sheet(wb, ws, '库存数据');
+
+      // 动态生成文件名
       const warehouse = document.getElementById('warehouse').selectedOptions[0].textContent.trim();
       const manufacturer = document.getElementById('manufacturer').selectedOptions[0].textContent.trim() || '全部厂家';
       const startDate = document.getElementById('startDate').value || '开始日期';
       const endDate = document.getElementById('endDate').value || '结束日期';
-      const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}.csv`;
+      const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}.xlsx`;
 
-      const base64Content = btoa(unescape(encodeURIComponent(csvContent)));
-      const dataUri = `data:text/csv;charset=utf-8;base64,${base64Content}`;
-
-      const link = document.createElement('a');
-      link.href = dataUri;
-      link.download = fileName;
-
-      // 模拟点击下载
-      link.click();
+      // 导出文件
+      XLSX.writeFile(wb, fileName);
     }
 
   </script>
