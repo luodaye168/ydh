@@ -8,14 +8,21 @@ const app = express();
 const port = 3000;
 const jar = new CookieJar();
 let isLoggedIn = false; // 登录状态标记
-
+let isLoggingIn = false; // 登录锁
 // 静态文件中间件
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 登录并管理会话
 async function ensureLogin() {
     if (isLoggedIn) return;
-
+    if (isLoggingIn) {
+        // 如果正在登录，等待登录完成
+        while (isLoggingIn) {
+            await new Promise(resolve => setTimeout(resolve, 100)); // 每 100ms 检查一次
+        }
+        return;
+    }
+    isLoggingIn = true; // 设置登录锁，防止重复登录
     try {
         const loginUrl = 'https://sso.dinghuo123.com/login';
         const response = await axios.post(loginUrl, new URLSearchParams({
@@ -33,6 +40,8 @@ async function ensureLogin() {
     } catch (error) {
         console.error('登录失败:', error);
         throw error;
+    }finally {
+        isLoggingIn = false; // 释放登录锁
     }
 }
 
