@@ -270,9 +270,9 @@
 
         const params = {
           warehouseId: document.getElementById('warehouse').value,
+          manufacturer: document.getElementById('manufacturer').value, // 添加厂家参数
           startDate: document.getElementById('startDate').value,
           endDate: document.getElementById('endDate').value,
-          manufacturer: document.getElementById('manufacturer').value, // 添加厂家参数
         };
 
         const [stockRes, orderRes] = await Promise.all([
@@ -419,7 +419,7 @@
       const rows = Array.from(table.querySelectorAll('tr'));
       const csvContent = rows.map(row => {
         const cells = Array.from(row.querySelectorAll('th, td'));
-        return cells.map(cell => `"${cell.textContent.trim()}"`).join(',');
+        return cells.map(cell => `"${cell.textContent.trim()}"`).join(','); // 使用逗号分隔
       }).join('\n');
 
       // 动态生成文件名
@@ -427,10 +427,10 @@
       const manufacturer = document.getElementById('manufacturer').selectedOptions[0].textContent.trim() || '全部厂家';
       const startDate = document.getElementById('startDate').value || '开始日期';
       const endDate = document.getElementById('endDate').value || '结束日期';
-      const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}库存预警.xlsx`;
+      const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}.csv`;
 
       // 创建 Blob 并下载文件
-      const blob = new Blob([csvContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -438,6 +438,7 @@
       link.click();
       URL.revokeObjectURL(url);
     }
+
   </script>
   <script>
     // 设置默认值为当天日期
