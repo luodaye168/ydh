@@ -213,7 +213,7 @@
     <!-- 厂家过滤 -->
     <div class="filter-group">
       <label>厂家：</label>
-                                                  <!-- onchange="loadData()" -->
+      <!-- onchange="loadData()" -->
       <select id="manufacturer" class="compact">
         <option value="">全部</option>
         <!-- 动态选项 -->
@@ -224,13 +224,16 @@
     <div class="filter-group">
       <label>筛选时间：</label>
       <div class="date-group">
-        <input type="date" id="startDate" class="compact"  onchange="loadData()">
+        <input type="date" id="startDate" class="compact" onchange="loadData()">
         <span style="color: #909399;">至</span>
-        <input type="date" id="endDate" class="compact"  onchange="loadData()"> 
+        <input type="date" id="endDate" class="compact" onchange="loadData()">
       </div>
     </div>
 
     <!-- <button class="compact" onclick="loadData()">查询</button> -->
+    <div class="filter-group">
+      <button class="compact" id="exportButton" onclick="exportTable()">导出表格</button>
+    </div>
   </div>
 
   <div id="progressBarContainer"
@@ -268,7 +271,8 @@
         const params = {
           warehouseId: document.getElementById('warehouse').value,
           startDate: document.getElementById('startDate').value,
-          endDate: document.getElementById('endDate').value
+          endDate: document.getElementById('endDate').value,
+          manufacturer: document.getElementById('manufacturer').value, // 添加厂家参数
         };
 
         const [stockRes, orderRes] = await Promise.all([
@@ -410,6 +414,30 @@
     refreshManufacturerOptions();
     loadData();
 
+    function exportTable() {
+      const table = document.getElementById('inventoryTable');
+      const rows = Array.from(table.querySelectorAll('tr'));
+      const csvContent = rows.map(row => {
+        const cells = Array.from(row.querySelectorAll('th, td'));
+        return cells.map(cell => `"${cell.textContent.trim()}"`).join(',');
+      }).join('\n');
+
+      // 动态生成文件名
+      const warehouse = document.getElementById('warehouse').selectedOptions[0].textContent.trim();
+      const manufacturer = document.getElementById('manufacturer').selectedOptions[0].textContent.trim() || '全部厂家';
+      const startDate = document.getElementById('startDate').value || '开始日期';
+      const endDate = document.getElementById('endDate').value || '结束日期';
+      const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}库存预警.xlsx`;
+
+      // 创建 Blob 并下载文件
+      const blob = new Blob([csvContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
   </script>
   <script>
     // 设置默认值为当天日期
