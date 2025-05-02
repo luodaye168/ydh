@@ -109,7 +109,8 @@ const departmentMap = {
 
 // 订单统计代理端点
 app.get('/proxy/orders', async (req, res) => {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, warehouseId } = req.query; // 获取 warehouseId 参数
+    const departmentId = departmentMap[warehouseId]; 
     const params = {
         periodType: 'CUSTOM',
         beginDate: startDate,
