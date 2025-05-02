@@ -422,21 +422,21 @@
         return cells.map(cell => `"${cell.textContent.trim()}"`).join(','); // 使用逗号分隔
       }).join('\n');
 
-      // 动态生成文件名
       const warehouse = document.getElementById('warehouse').selectedOptions[0].textContent.trim();
       const manufacturer = document.getElementById('manufacturer').selectedOptions[0].textContent.trim() || '全部厂家';
       const startDate = document.getElementById('startDate').value || '开始日期';
       const endDate = document.getElementById('endDate').value || '结束日期';
       const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}.csv`;
 
-      // 创建 Blob 并下载文件
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
+      const base64Content = btoa(unescape(encodeURIComponent(csvContent)));
+      const dataUri = `data:text/csv;charset=utf-8;base64,${base64Content}`;
+
       const link = document.createElement('a');
-      link.href = url;
+      link.href = dataUri;
       link.download = fileName;
+
+      // 模拟点击下载
       link.click();
-      URL.revokeObjectURL(url);
     }
 
   </script>
