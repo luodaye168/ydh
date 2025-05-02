@@ -126,8 +126,10 @@ app.get('/proxy/orders', async (req, res) => {
     const warehouseName = warehouseMap[warehouseId] || '未知仓库';
 
     // console.log('访问者 IP 地址:', req.ip);
-    console.log(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'} ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
+    console.log(`订单统计接口请求: ${warehouseName}, ${manufacturer || '全部厂家'} ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
     // console.log(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
+    // 打印params
+    console.log('订单统计接口参数:', params);
     await handleProxyRequest(targetUrl, params, res, '订单统计');
 });
 
