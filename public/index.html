@@ -203,7 +203,7 @@
     <!-- 仓库选择 -->
     <div class="filter-group">
       <label>仓库：</label>
-      <select id="warehouse" class="compact"  onchange="loadData()">
+      <select id="warehouse" class="compact">
         <option value="4033070" selected>玉林仓</option>
         <option value="4032050">湛江仓</option>
         <option value="4030410">贵港仓</option>
@@ -214,7 +214,7 @@
     <div class="filter-group">
       <label>厂家：</label>
                                                   <!-- onchange="loadData()" -->
-      <select id="manufacturer" class="compact"  onchange="loadData()">
+      <select id="manufacturer" class="compact">
         <option value="">全部</option>
         <!-- 动态选项 -->
       </select>
@@ -398,13 +398,13 @@
     }
 
     // 绑定仓库选择变化事件，刷新厂家过滤下拉框
-    // document.getElementById('warehouse').addEventListener('change', () => {
-    //   refreshManufacturerOptions();
-    //   loadData();
-    // });
+    document.getElementById('warehouse').addEventListener('change', () => {
+      refreshManufacturerOptions();
+      loadData();
+    });
 
     // // 绑定厂家过滤变化事件
-    // document.getElementById('manufacturer').addEventListener('change', loadData);
+    document.getElementById('manufacturer').addEventListener('change', loadData);
 
     // 初始化加载数据
     refreshManufacturerOptions();
