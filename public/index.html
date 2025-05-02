@@ -277,7 +277,7 @@
         };
 
         const [stockRes, orderRes] = await Promise.all([
-          fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${params.warehouseId}`),
+          fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${params.warehouseId}&manufacturer=${params.manufacturer}`),
           fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/orders?${new URLSearchParams(params)}`)
         ]);
         progressBar.style.width = '60%';

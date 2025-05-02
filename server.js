@@ -74,7 +74,7 @@ app.get('/proxy/stock', async (req, res) => {
     const warehouseName = warehouseMap[warehouseId] || '未知仓库';
 
     // console.log('访问者 IP 地址:', req.ip);
-    console.log(`库存接口请求 - 仓库: ${warehouseName}, 厂家: ${manufacturer || '未指定厂家'}`);
+    console.log(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'}`);
     console.log('库存接口目标 URL:', targetUrl);
 
     await handleProxyRequest(targetUrl, params, res, '库存');
