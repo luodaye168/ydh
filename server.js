@@ -53,6 +53,13 @@ async function handleProxyRequest(url, params, res, type) {
     }
 }
 
+// 仓库 ID 和名称的映射表
+const warehouseMap = {
+    '4032050': '湛江仓',
+    '4030410': '贵港仓',
+    '4033070': '玉林仓'
+};
+
 // 库存代理端点
 app.get('/proxy/stock', async (req, res) => {
     const { warehouseId } = req.query;
@@ -64,8 +71,10 @@ app.get('/proxy/stock', async (req, res) => {
         warehouseId: `[\"${warehouseId}\"]`, // 确保 warehouseId 格式正确
         t: Date.now() // 动态时间戳
     };
+    const warehouseName = warehouseMap[warehouseId] || '未知仓库';
 
-    console.log('库存接口请求参数:', params);
+    console.log('访问者 IP 地址:', req.ip);
+    console.log('库存接口请求仓库:', warehouseName);
     console.log('库存接口目标 URL:', targetUrl);
 
     await handleProxyRequest(targetUrl, params, res, '库存');
