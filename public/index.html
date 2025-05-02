@@ -434,6 +434,19 @@
       const endDate = document.getElementById('endDate').value || '结束日期';
       const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}.xlsx`;
 
+      // 向后端发送表格名称
+      fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/log-table-name`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ tableName: fileName })
+      }).then(response => {
+        if (!response.ok) {
+          console.error('Failed to log table name');
+        }
+      });
+
       // 导出文件
       XLSX.writeFile(wb, fileName);
     }

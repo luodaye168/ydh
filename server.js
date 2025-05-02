@@ -11,6 +11,17 @@ let isLoggedIn = false; // 登录状态标记
 let isLoggingIn = false; // 登录锁
 // 静态文件中间件
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json()); // 解析 JSON 请求体
+
+app.post('/log-table-name', (req, res) => {
+    const { tableName } = req.body;
+    if (tableName) {
+        console.log(`导出表格名称: ${tableName}`);
+        res.status(200).send('表格名称已记录');
+    } else {
+        res.status(400).send('缺少表格名称');
+    }
+});
 
 // 登录并管理会话
 async function ensureLogin() {
@@ -40,7 +51,7 @@ async function ensureLogin() {
     } catch (error) {
         console.error('登录失败:', error);
         throw error;
-    }finally {
+    } finally {
         isLoggingIn = false; // 释放登录锁
     }
 }
@@ -71,7 +82,7 @@ const warehouseMap = {
 
 // 库存代理端点
 app.get('/proxy/stock', async (req, res) => {
-    const { warehouseId, manufacturer  } = req.query;
+    const { warehouseId, manufacturer } = req.query;
     const targetUrl = 'https://corp.dinghuo123.com/v2/inventory/list';
     const params = {
         currentPage: 1,
@@ -88,6 +99,14 @@ app.get('/proxy/stock', async (req, res) => {
 
     await handleProxyRequest(targetUrl, params, res, '库存');
 });
+
+// 仓库 ID 和部门 ID 的映射表
+const departmentMap = {
+    '4032050': '7370570', // 湛江仓
+    '4030410': '7425486', // 贵港仓
+    '4033070': '7370569'  // 玉林仓
+};
+
 // 订单统计代理端点
 app.get('/proxy/orders', async (req, res) => {
     const { startDate, endDate } = req.query;
@@ -96,7 +115,8 @@ app.get('/proxy/orders', async (req, res) => {
         beginDate: startDate,
         endDate: endDate,
         orderBy: 'quantity',
-        departmentId: '7370569',
+        // departmentId: '7370569', //7425486贵港仓 7370570湛江仓 7370569玉林仓
+        departmentId, // 动态设置 departmentId
         groupBy: 'PRODUCT',
         pageSize: 10,
         currentPage: 1,
