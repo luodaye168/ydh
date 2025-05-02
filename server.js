@@ -91,11 +91,10 @@ app.get('/proxy/stock', async (req, res) => {
         warehouseId: `[\"${warehouseId}\"]`, // 确保 warehouseId 格式正确
         t: Date.now() // 动态时间戳
     };
-    const warehouseName = warehouseMap[warehouseId] || '未知仓库';
+    // const warehouseName = warehouseMap[warehouseId] || '未知仓库';
 
-    // console.log('访问者 IP 地址:', req.ip);
-    console.log(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'}`);
-    console.log('库存接口目标 URL:', targetUrl);
+    // console.log(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'}`);
+    // console.log('库存接口目标 URL:', targetUrl);
 
     await handleProxyRequest(targetUrl, params, res, '库存');
 });
@@ -109,22 +108,26 @@ const departmentMap = {
 
 // 订单统计代理端点
 app.get('/proxy/orders', async (req, res) => {
-    const { startDate, endDate, warehouseId } = req.query; // 获取 warehouseId 参数
-    const departmentId = departmentMap[warehouseId]; 
+    const { startDate, endDate, warehouseId, manufacturer } = req.query; // 获取 warehouseId 参数
+    const DepartmentId = departmentMap[warehouseId];
     const params = {
         periodType: 'CUSTOM',
         beginDate: startDate,
         endDate: endDate,
         orderBy: 'quantity',
         // departmentId: '7370569', //7425486贵港仓 7370570湛江仓 7370569玉林仓
-        departmentId, // 动态设置 departmentId
+        departmentId: DepartmentId, // 动态设置 departmentId
         groupBy: 'PRODUCT',
         pageSize: 10,
         currentPage: 1,
         t: Date.now()
     };
     const targetUrl = 'https://corp.dinghuo123.com/v2/statistics-reports/region/products/pie-chart';
-    console.log(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
+    const warehouseName = warehouseMap[warehouseId] || '未知仓库';
+
+    // console.log('访问者 IP 地址:', req.ip);
+    console.log(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'} ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
+    // console.log(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
     await handleProxyRequest(targetUrl, params, res, '订单统计');
 });
 
