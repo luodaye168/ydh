@@ -249,7 +249,7 @@
         <th>商品编码</th>
         <th>商品名称</th>
         <th>所属仓库</th>
-        <th>可用库存量</th>
+        <th>当前可用库存量</th>
         <th>订货数量</th>
         <th>预计剩余可用天数</th>
       </tr>
@@ -411,7 +411,7 @@
       <td>${row.usableCount}</td>
       <td>${row.orderQty}</td>
       <td class="ratio-column">
-        ${isNaN(row.ratio) ? '未下单' : (row.ratio * days).toFixed(2)}
+        ${isNaN(row.ratio) ? '未下单' : (row.ratio * days).toFixed(1)+ '天'}
       </td>
       `;
 
@@ -473,9 +473,9 @@
     // 设置默认值为当天日期
     const today = new Date();
 
-    // 设置开始日期为前 5 天
+    // 设置开始日期为前 4 天
     const startDate = new Date();
-    startDate.setDate(today.getDate() - 5);
+    startDate.setDate(today.getDate() - 4);
 
     document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
     document.getElementById('endDate').value = today.toISOString().split('T')[0];
