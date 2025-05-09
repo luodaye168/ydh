@@ -67,7 +67,24 @@ async function handleProxyRequest(url, params, res, type) {
                 'User-Agent': 'Mozilla/5.0 (...)' // 模拟浏览器
             }
         });
-        res.json(response.data);
+        // res.json(response.data);
+        // 检查返回数据是否包含 session 过期的提示
+        if (response.data.code === 302 && response.data.message === 'session is expired!') {
+            console.log(`${type}接口会话过期，正在重新登录...`);
+            isLoggedIn = false; // 标记登录状态为无效
+            await ensureLogin(); // 重新登录
+            // 重试请求
+            const retryResponse = await axios.get(url, {
+                params,
+                jar,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (...)'
+                }
+            });
+            res.json(retryResponse.data); // 返回重试后的数据
+        } else {
+            res.json(response.data); // 正常返回数据
+        }
     } catch (error) {
         handleProxyError(error, res, type);
     }
@@ -129,7 +146,7 @@ app.get('/proxy/orders', async (req, res) => {
     console.log(`订单统计接口请求: ${warehouseName}, ${manufacturer || '全部厂家'} ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
     // console.log(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
     // 打印params
-    console.log('订单统计接口参数:', params);
+    // console.log('订单统计接口参数:', params);
     await handleProxyRequest(targetUrl, params, res, '订单统计');
 });
 
