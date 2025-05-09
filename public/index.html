@@ -251,13 +251,14 @@
         <th>所属仓库</th>
         <th>可用库存量</th>
         <th>订货数量</th>
-        <th>预计可用天数</th>
+        <th>预计剩余可用天数</th>
       </tr>
     </thead>
     <tbody id="tableBody">
     </tbody>
   </table>
   <script>
+    const days = 0;
     async function loadData() {
       try {
         // 显示进度条
@@ -279,7 +280,7 @@
         // 计算筛选天数
         const startDate = new Date(params.startDate);
         const endDate = new Date(params.endDate);
-        const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // 包括开始和结束日期
+        days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // 包括开始和结束日期
 
         // 动态更新表头
         const tableHeader = document.querySelector('.warning-table th:nth-child(6)');
@@ -360,9 +361,9 @@
       const selectedManufacturer = document.getElementById('manufacturer').value;
 
       // 获取筛选天数
-      const startDate = new Date(document.getElementById('startDate').value);
-      const endDate = new Date(document.getElementById('endDate').value);
-      const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // 包括开始和结束日期
+      // const startDate = new Date(document.getElementById('startDate').value);
+      // const endDate = new Date(document.getElementById('endDate').value);
+      // const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // 包括开始和结束日期
 
       // 计算每一行的 ratio 并存储到数组中
       const rows = stockItems
@@ -378,9 +379,6 @@
             ? '未下单' // 处理除零情况
             : (item.usableCount / orderQty).toFixed(2);
 
-          // 计算预计可用天数
-          const estimatedDays = (item.usableCount * days).toFixed(2);
-
           return {
             code: item.code,
             productName: item.productName,
@@ -388,7 +386,6 @@
             usableCount: item.usableCount,
             orderQty: orderQty,
             ratio: ratio,
-            estimatedDays: estimatedDays // 新增字段
           };
         });
 
@@ -413,13 +410,15 @@
       <td>${row.warehouseName}</td>
       <td>${row.usableCount}</td>
       <td>${row.orderQty}</td>
-      <td class="ratio-column">${row.estimatedDays}</td> <!-- 更新列 -->
-    `;
+      <td class="ratio-column">
+        ${isNaN(row.ratio) ? '未下单' : (row.ratio * days).toFixed(2)}
+      </td>
+      `;
 
         tbody.appendChild(tr);
       });
     }
-    
+
     // 绑定仓库选择变化事件，刷新厂家过滤下拉框
     document.getElementById('warehouse').addEventListener('change', () => {
       refreshManufacturerOptions();
