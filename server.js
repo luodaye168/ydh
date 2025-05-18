@@ -35,6 +35,13 @@ async function ensureLogin() {
     }
     isLoggingIn = true; // 设置登录锁，防止重复登录
     try {
+        // 清空 Cookie
+        if (typeof jar.removeAllCookiesSync === 'function') {
+            jar.removeAllCookiesSync();
+        } else if (typeof jar.removeAllCookies === 'function') {
+            await new Promise(resolve => jar.removeAllCookies(resolve));
+        }
+
         const loginUrl = 'https://sso.dinghuo123.com/login';
         const response = await axios.post(loginUrl, new URLSearchParams({
             username: '18676246146',
