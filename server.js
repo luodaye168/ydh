@@ -9,14 +9,15 @@ const port = 3000;
 const jar = new CookieJar();
 let isLoggedIn = false; // 登录状态标记
 let isLoggingIn = false; // 登录锁
-// 静态文件中间件
-app.use(express.static(path.join(__dirname, 'public')));
 
 // 访问ID.html时打印日志
 app.get('/ID.html', (req, res, next) => {
     console.log('访问了ID.html');
     next();
 });
+
+// 静态文件中间件
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.json()); // 解析 JSON 请求体
 
