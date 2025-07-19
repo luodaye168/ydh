@@ -3,17 +3,39 @@ const path = require('path');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const axios = wrapper(require('axios')); // ✅ 正确初始化
+const fs = require('fs');
+const logFilePath = path.join(__dirname, 'public', 'server.log');
+
+function logAndSave(...args) {
+    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' ');
+    console.log(`[${new Date((Date.now() + 8 * 60 * 60 * 1000)).toISOString().slice(0, 16).replace('T', ' ')}] ${msg}`);
+    fs.appendFile(logFilePath, `[${new Date((Date.now() + 8 * 60 * 60 * 1000)).toISOString().slice(0, 16).replace('T', ' ')}] ${msg}\n`, () => { });
+}
 
 const app = express();
-const port = 3000;
+const port = 80;
 const jar = new CookieJar();
 let isLoggedIn = false; // 登录状态标记
 let isLoggingIn = false; // 登录锁
 
 // 访问ID.html时打印日志
 app.get('/ID.html', (req, res, next) => {
-    console.log('访问了ID.html');
+    logAndSave('访问了ID.html');
     next();
+});
+// 新增接口，返回日志内容
+app.get('/logs', (req, res) => {
+    fs.readFile(logFilePath, 'utf8', (err, data) => {
+        if (err) return res.status(500).send('日志读取失败');
+        res.type('text/plain').send(data);
+    });
+});
+
+app.delete('/logs', (req, res) => {
+    fs.writeFile(logFilePath, '', err => {
+        if (err) return res.status(500).send('日志删除失败');
+        res.send('日志已清空');
+    });
 });
 
 // 静态文件中间件
@@ -24,7 +46,7 @@ app.use(express.json()); // 解析 JSON 请求体
 app.post('/log-table-name', (req, res) => {
     const { tableName } = req.body;
     if (tableName) {
-        console.log(`导出表格名称: ${tableName}`);
+        logAndSave(`导出表格名称: ${tableName}`);
         res.status(200).send('表格名称已记录');
     } else {
         res.status(400).send('缺少表格名称');
@@ -62,7 +84,7 @@ async function ensureLogin() {
         });
 
         isLoggedIn = true; // 标记已登录
-        console.log('登录成功，Cookie:', jar.getCookieStringSync(loginUrl));
+        logAndSave('登录成功，Cookie:', jar.getCookieStringSync(loginUrl));
     } catch (error) {
         console.error('登录失败:', error);
         throw error;
@@ -85,7 +107,7 @@ async function handleProxyRequest(url, params, res, type) {
         // res.json(response.data);
         // 检查返回数据是否包含 session 过期的提示
         if (response.data.code === 302 && response.data.message === 'session is expired!') {
-            console.log(`${type}接口会话过期，正在重新登录...`);
+            logAndSave(`${type}接口会话过期，正在重新登录...`);
             isLoggedIn = false; // 标记登录状态为无效
             await ensureLogin(); // 重新登录
             // 重试请求
@@ -125,8 +147,8 @@ app.get('/proxy/stock', async (req, res) => {
     };
     // const warehouseName = warehouseMap[warehouseId] || '未知仓库';
 
-    // console.log(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'}`);
-    // console.log('库存接口目标 URL:', targetUrl);
+    // logAndSave(`库存接口请求: ${warehouseName}, ${manufacturer || '全部厂家'}`);
+    // logAndSave('库存接口目标 URL:', targetUrl);
 
     await handleProxyRequest(targetUrl, params, res, '库存');
 });
@@ -157,11 +179,11 @@ app.get('/proxy/orders', async (req, res) => {
     const targetUrl = 'https://corp.dinghuo123.com/v2/statistics-reports/region/products/pie-chart';
     const warehouseName = warehouseMap[warehouseId] || '未知仓库';
 
-    // console.log('访问者 IP 地址:', req.ip);
-    console.log(`订单统计接口请求: ${warehouseName}, ${manufacturer || '全部厂家'} ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
-    // console.log(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
+    // logAndSave(`访问者IP: ${req.ip}`); // 打印访问者IP
+    logAndSave(`[${req.ip}] ${warehouseName}, ${manufacturer || '全部厂家'} ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
+    // logAndSave(`订单统计接口请求 - 开始日期: ${startDate || '未指定'}, 结束日期: ${endDate || '未指定'}`);
     // 打印params
-    // console.log('订单统计接口参数:', params);
+    // logAndSave('订单统计接口参数:', params);
     await handleProxyRequest(targetUrl, params, res, '订单统计');
 });
 
@@ -175,4 +197,7 @@ function handleProxyError(error, res, type) {
     });
 }
 
-app.listen(port, () => console.log(`服务已启动：http://localhost:${port}`));
+// app.listen(port, () => logAndSave(`服务已启动：http://localhost:${port}`));
+// ...existing code...
+app.listen(port, '0.0.0.0', () => logAndSave(`服务已启动：http://0.0.0.0:${port}`));
+// ...existing code...

@@ -287,8 +287,8 @@
         tableHeader.textContent = `${days}天总订货数量`;
 
         const [stockRes, orderRes] = await Promise.all([
-          fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${params.warehouseId}&manufacturer=${params.manufacturer}`),
-          fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/orders?${new URLSearchParams(params)}`)
+          fetch(`http://180.184.80.136/proxy/stock?warehouseId=${params.warehouseId}&manufacturer=${params.manufacturer}`),
+          fetch(`http://180.184.80.136/proxy/orders?${new URLSearchParams(params)}`)
         ]);
         progressBar.style.width = '60%';
 
@@ -327,7 +327,7 @@
       try {
         const warehouseId = document.getElementById('warehouse').value;
 
-        const stockRes = await fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/proxy/stock?warehouseId=${warehouseId}`);
+        const stockRes = await fetch(`http://180.184.80.136/proxy/stock?warehouseId=${warehouseId}`);
         const stockData = await stockRes.json();
 
         // 提取厂家信息并更新下拉框，仅提取括号内的第一个字
@@ -452,7 +452,7 @@
       const fileName = `${warehouse}_${manufacturer}_${startDate}_至_${endDate}.xlsx`;
 
       // 向后端发送表格名称
-      fetch(`https://yidinghuo-21141-6-1310835343.sh.run.tcloudbase.com/log-table-name`, {
+      fetch(`http://180.184.80.136/log-table-name`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
